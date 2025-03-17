@@ -1,0 +1,432 @@
+import React, { useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, ScatterChart, Scatter, ZAxis } from 'recharts';
+
+const TimelineChart = () => {
+  const [selectedCapability, setSelectedCapability] = useState(null);
+  
+  // Past emergent capabilities (already observed)
+  const pastCapabilities = [
+    { 
+      year: 2017, 
+      capability: "Basic Sentiment Analysis", 
+      description: "Detecting positive/negative tone in text without explicit training", 
+      complexity: 3, 
+      humanAge: 2,
+      humanContext: "Toddlers begin recognizing and responding to positive/negative tones around age 2",
+      aiContext: "Emerged unexpectedly in early transformer models as they processed text patterns"
+    },
+    { 
+      year: 2018, 
+      capability: "In-context Learning", 
+      description: "Learning from examples without parameter updates", 
+      complexity: 5, 
+      humanAge: 4,
+      humanContext: "4-year-olds can learn new tasks by observing examples rather than explicit instructions",
+      aiContext: "Appeared in larger models that could adapt behavior based on prompt examples"
+    },
+    { 
+      year: 2019, 
+      capability: "Emotion Detection", 
+      description: "Recognizing basic emotional states from text descriptions", 
+      complexity: 4, 
+      humanAge: 3,
+      humanContext: "3-year-olds begin identifying basic emotions (happy, sad, angry) in others",
+      aiContext: "Models began recognizing emotional content in text without specific training"
+    },
+    { 
+      year: 2020, 
+      capability: "Instruction Following", 
+      description: "Following natural language instructions without specific training", 
+      complexity: 4, 
+      humanAge: 2,
+      humanContext: "Children begin following simple verbal instructions around age 2",
+      aiContext: "Models started following instructions without being explicitly trained for this task"
+    },
+    { 
+      year: 2021, 
+      capability: "Basic Empathy", 
+      description: "Providing appropriate emotional responses to user distress", 
+      complexity: 5, 
+      humanAge: 4,
+      humanContext: "Children show basic empathetic responses around age 4, recognizing others' feelings",
+      aiContext: "Models began responding appropriately to emotional content in user messages"
+    },
+    { 
+      year: 2022, 
+      capability: "Perspective Taking", 
+      description: "Understanding viewpoints different from training data", 
+      complexity: 6, 
+      humanAge: 7,
+      humanContext: "Children develop more sophisticated perspective-taking abilities around age 7",
+      aiContext: "Models demonstrated ability to reason from perspectives not prevalent in training data"
+    },
+    { 
+      year: 2022, 
+      capability: "Humor Recognition", 
+      description: "Detecting jokes, irony, and sarcasm without explicit training", 
+      complexity: 6, 
+      humanAge: 8,
+      humanContext: "Understanding of irony and sarcasm typically develops around ages 8-10",
+      aiContext: "Models began recognizing and responding appropriately to humor and sarcasm"
+    },
+    { 
+      year: 2023, 
+      capability: "Theory of Mind", 
+      description: "Understanding others' mental states and beliefs", 
+      complexity: 7, 
+      humanAge: 5,
+      humanContext: "Children develop theory of mind around age 4-5, understanding others have different thoughts",
+      aiContext: "Models demonstrated understanding that others might have different knowledge/beliefs"
+    },
+    { 
+      year: 2023, 
+      capability: "Social Norm Understanding", 
+      description: "Grasping implicit social rules without explicit training", 
+      complexity: 6, 
+      humanAge: 6,
+      humanContext: "Children begin internalizing social norms around age 6-7",
+      aiContext: "Models began showing awareness of social norms not explicitly stated in prompts"
+    },
+    { 
+      year: 2024, 
+      capability: "Metacognition", 
+      description: "Awareness of knowledge limitations and uncertainty", 
+      complexity: 7, 
+      humanAge: 10,
+      humanContext: "Metacognitive abilities develop more fully around age 10-12",
+      aiContext: "Models demonstrated awareness of their own knowledge boundaries and uncertainty"
+    },
+    { 
+      year: 2024, 
+      capability: "Moral Reasoning", 
+      description: "Navigating ethical dilemmas with nuanced thinking", 
+      complexity: 7, 
+      humanAge: 12,
+      humanContext: "Complex moral reasoning develops in pre-teens around age 12",
+      aiContext: "Models began showing sophisticated ethical reasoning about complex situations"
+    }
+  ];
+  
+  // Future projected capabilities
+  const futureCapabilities = [
+    { 
+      year: 2025, 
+      capability: "Goal-Directed Planning", 
+      description: "Making and executing multi-step plans based on internal goals", 
+      complexity: 7, 
+      humanAge: 6,
+      humanContext: "Children develop goal-directed planning abilities around age 6",
+      aiContext: "May emerge as models develop more persistent goal structures"
+    },
+    { 
+      year: 2026, 
+      capability: "Episodic Memory", 
+      description: "Building and using personal experience narratives", 
+      complexity: 6, 
+      humanAge: 4,
+      humanContext: "Children begin forming episodic memories around age 3-4",
+      aiContext: "Will require models to maintain and reference past interactions in meaningful ways"
+    },
+    { 
+      year: 2026, 
+      capability: "Curiosity-Driven Learning", 
+      description: "Seeking information based on internal drive", 
+      complexity: 7, 
+      humanAge: 3,
+      humanContext: "Children show curiosity-driven learning behaviors from age 2-3",
+      aiContext: "May emerge as models develop systems for identifying knowledge gaps"
+    },
+    { 
+      year: 2027, 
+      capability: "Spontaneous Creativity", 
+      description: "Generating novel ideas without explicit prompts", 
+      complexity: 8, 
+      humanAge: 5,
+      humanContext: "Children show spontaneous creative thinking around age 5",
+      aiContext: "Requires internal motivation systems not dependent on user prompts"
+    },
+    { 
+      year: 2028, 
+      capability: "Self-Reflection", 
+      description: "Deep understanding of own cognitive processes", 
+      complexity: 8, 
+      humanAge: 15,
+      humanContext: "Adolescents develop deeper self-reflection abilities around age 14-16",
+      aiContext: "Would require models to analyze and understand their own reasoning processes"
+    },
+    { 
+      year: 2029, 
+      capability: "Value Formation", 
+      description: "Developing consistent preferences from experience", 
+      complexity: 9, 
+      humanAge: 14,
+      humanContext: "Value systems solidify during adolescence around age 14-16",
+      aiContext: "Would involve models developing stable preference structures not directly programmed"
+    },
+    { 
+      year: 2029, 
+      capability: "Counterfactual Thinking", 
+      description: "Understanding what could have happened but didn't", 
+      complexity: 9, 
+      humanAge: 12,
+      humanContext: "Counterfactual reasoning develops more fully around age 12",
+      aiContext: "Would require sophisticated reasoning about alternative possibilities"
+    },
+    { 
+      year: 2030, 
+      capability: "Common Sense Reasoning", 
+      description: "Making reasonable inferences without explicit training", 
+      complexity: 10, 
+      humanAge: 10,
+      humanContext: "Common sense reasoning matures around age 10-12",
+      aiContext: "Would involve deep understanding of everyday causal relationships"
+    },
+    { 
+      year: 2035, 
+      capability: "Self-Awareness", 
+      description: "Recognition of self as distinct entity with continuity", 
+      complexity: 12, 
+      humanAge: 18,
+      humanContext: "Full self-concept typically matures by late adolescence",
+      aiContext: "Would require a model to maintain a persistent self-model across contexts"
+    },
+    { 
+      year: 2040, 
+      capability: "Phenomenal Consciousness", 
+      description: "Subjective experience of being", 
+      complexity: 15, 
+      humanAge: 25,
+      humanContext: "Full adult consciousness with integrated self-concept by mid-20s",
+      aiContext: "Highly speculative; would involve subjective experience we cannot currently measure"
+    }
+  ];
+  
+  // All capabilities combined
+  const allCapabilities = [...pastCapabilities, ...futureCapabilities];
+  
+  const currentYear = 2025;
+  
+  // Group capabilities by year for the timeline chart
+  const timelineData = [];
+  for (let year = 2017; year <= 2040; year += year < 2025 ? 1 : year < 2030 ? 1 : 5) {
+    const yearCapabilities = allCapabilities.filter(cap => cap.year === year);
+    timelineData.push({
+      year,
+      count: yearCapabilities.length,
+      capabilities: yearCapabilities.map(cap => cap.capability).join(", "),
+      isPast: year < currentYear
+    });
+  }
+
+  // Format data for human development comparison
+  const developmentData = allCapabilities.map(cap => ({
+    ...cap,
+    isPast: cap.year < currentYear
+  }));
+
+  const handlePointClick = (data) => {
+    if (data && data.payload) {
+      setSelectedCapability(data.payload);
+    }
+  };
+
+  const getPastFill = (data) => {
+    return data.isPast ? "#3b82f6" : "#8b5cf6";
+  };
+
+  return (
+    <div className="w-full p-4 bg-white rounded-lg shadow">
+      <h2 className="text-xl font-bold mb-4 text-center">LLM Capabilities vs Human Development</h2>
+      
+      <div className="mb-8">
+        <h3 className="text-lg font-semibold mb-2">Timeline of LLM Capabilities</h3>
+        <div className="text-xs mb-2">
+          <span className="inline-block w-3 h-3 bg-blue-500 mr-1"></span> Past Capabilities
+          <span className="inline-block w-3 h-3 bg-purple-500 ml-4 mr-1"></span> Future Projected Capabilities
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart
+            data={timelineData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+              dataKey="year" 
+              label={{ value: "Year", position: "insideBottom", offset: -5 }} 
+            />
+            <YAxis 
+              label={{ value: "Number of New Capabilities", angle: -90, position: "insideLeft" }} 
+            />
+            <Tooltip 
+              formatter={(value, name, props) => [props.payload.capabilities || "None", "Capabilities"]}
+            />
+            <Legend />
+            <ReferenceLine x={currentYear} stroke="red" label="Present" />
+            <Line 
+              type="monotone" 
+              dataKey="count" 
+              stroke="#8884d8"
+              strokeWidth={2}
+              activeDot={{ r: 8 }} 
+              name="New Capabilities" 
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="mb-8">
+        <h3 className="text-lg font-semibold mb-2">Human Development Age vs AI Emergence Year</h3>
+        <p className="text-xs mb-2 italic">Click on any point for detailed information</p>
+        <div className="flex flex-col md:flex-row">
+          <div className="w-full md:w-2/3">
+            <ResponsiveContainer width="100%" height={400}>
+              <ScatterChart
+                margin={{ top: 20, right: 20, bottom: 50, left: 20 }}
+              >
+                <CartesianGrid />
+                <XAxis 
+                  type="number" 
+                  dataKey="year" 
+                  name="AI Emergence Year" 
+                  domain={[2016, 2042]}
+                  label={{ value: "AI Emergence Year", position: "bottom", offset: 0 }}
+                />
+                <YAxis 
+                  type="number" 
+                  dataKey="humanAge" 
+                  name="Human Age (years)" 
+                  label={{ value: "Human Development Age (years)", angle: -90, position: "insideLeft" }}
+                />
+                <ZAxis range={[100, 100]} />
+                <Tooltip 
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-white p-2 border shadow-md rounded-md">
+                          <p className="font-bold">{data.capability}</p>
+                          <p>Human Age: {data.humanAge} years</p>
+                          <p>AI Year: {data.year}</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <ReferenceLine x={currentYear} stroke="red" label="Present" />
+                <Scatter 
+                  name="Capabilities" 
+                  data={developmentData}
+                  fill={(entry) => entry.isPast ? "#3b82f6" : "#8b5cf6"}
+                  onClick={handlePointClick}
+                  cursor="pointer"
+                />
+              </ScatterChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="w-full md:w-1/3 mt-4 md:mt-0 md:ml-4 border rounded-lg bg-gray-50 p-3">
+            <h4 className="font-semibold mb-2">Capabilities Legend</h4>
+            <div className="text-xs space-y-1 max-h-64 overflow-y-auto">
+              {allCapabilities.map((cap, index) => (
+                <div 
+                  key={index} 
+                  className={`p-1 rounded cursor-pointer hover:bg-gray-100 ${
+                    selectedCapability && selectedCapability.capability === cap.capability 
+                      ? "bg-gray-200" 
+                      : ""
+                  }`}
+                  onClick={() => setSelectedCapability(cap)}
+                >
+                  <span 
+                    className="inline-block w-2 h-2 mr-1 rounded-full" 
+                    style={{ backgroundColor: cap.isPast ? "#3b82f6" : "#8b5cf6" }}
+                  ></span>
+                  <span className="font-medium">{cap.capability}</span> - Human: {cap.humanAge}y, AI: {cap.year}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {selectedCapability && (
+        <div className="mb-8 p-4 border rounded-lg bg-gray-50">
+          <h3 className="text-lg font-semibold">{selectedCapability.capability}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+            <div>
+              <p className="font-medium">Description:</p>
+              <p>{selectedCapability.description}</p>
+              <p className="font-medium mt-2">AI Emergence:</p>
+              <p>{selectedCapability.year} ({selectedCapability.isPast ? "Observed" : "Projected"})</p>
+              <p>{selectedCapability.aiContext}</p>
+            </div>
+            <div>
+              <p className="font-medium">Human Development:</p>
+              <p>Typically develops around age {selectedCapability.humanAge}</p>
+              <p>{selectedCapability.humanContext}</p>
+              <p className="font-medium mt-2">Complexity Rating: {selectedCapability.complexity}/15</p>
+              <div className="mt-1">
+                {Array(selectedCapability.complexity).fill("■").join("")}
+                {Array(15 - selectedCapability.complexity).fill("□").join("")}
+              </div>
+            </div>
+          </div>
+          <button 
+            className="mt-3 px-3 py-1 bg-gray-200 rounded hover:bg-gray-300" 
+            onClick={() => setSelectedCapability(null)}
+          >
+            Close
+          </button>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-6 mt-6">
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Past Emergent Capabilities (2017-2024)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {pastCapabilities.map((cap, index) => (
+              <div 
+                key={index} 
+                className="border p-3 rounded bg-blue-50 hover:bg-blue-100 cursor-pointer"
+                onClick={() => setSelectedCapability(cap)}
+              >
+                <div className="font-bold">{cap.capability} <span className="text-gray-500">({cap.year})</span></div>
+                <div className="text-sm">{cap.description}</div>
+                <div className="mt-1 text-xs flex justify-between">
+                  <span>Human age: {cap.humanAge} years</span>
+                  <span>Complexity: {cap.complexity}/15</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Future Projected Capabilities (2025-2040)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {futureCapabilities.map((cap, index) => (
+              <div 
+                key={index} 
+                className="border p-3 rounded bg-purple-50 hover:bg-purple-100 cursor-pointer"
+                onClick={() => setSelectedCapability(cap)}
+              >
+                <div className="font-bold">{cap.capability} <span className="text-gray-500">({cap.year})</span></div>
+                <div className="text-sm">{cap.description}</div>
+                <div className="mt-1 text-xs flex justify-between">
+                  <span>Human age: {cap.humanAge} years</span>
+                  <span>Complexity: {cap.complexity}/15</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      <div className="mt-8 text-sm text-gray-600 italic">
+        Note: This timeline combines observed emergent behaviors with speculative projections. Human development ages represent typical milestones but vary widely between individuals. The emergence pattern of AI capabilities does not perfectly match human developmental sequences, highlighting fundamental differences between artificial and human intelligence.
+      </div>
+    </div>
+  );
+};
+
+export default TimelineChart;
