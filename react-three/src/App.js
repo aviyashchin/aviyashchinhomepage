@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState, useEffect } from 'react'
 import { Canvas, useFrame } from "@react-three/fiber"
 import { Float, Lightformer, Text, Html, ContactShadows, Environment, MeshTransmissionMaterial } from "@react-three/drei"
 import { Bloom, EffectComposer, N8AO, TiltShift2 } from "@react-three/postprocessing"
@@ -25,10 +25,10 @@ export const App = () => {
         <MainCanvas />
       )}
       <div className="nav">
-        <Link to="/">about</Link>
-        <Link to="/rights">rights</Link>
-        <Link to="/activism">activism</Link>
-        <Link to="/charity">charity</Link>
+        <Link to="/" className={loc === "/" ? "active" : ""}>about</Link>
+        <Link to="/rights" className={loc === "/rights" ? "active" : ""}>rights</Link>
+        <Link to="/activism" className={loc === "/activism" ? "active" : ""}>activism</Link>
+        <Link to="/charity" className={loc === "/charity" ? "active" : ""}>charity</Link>
       </div>
       {isHome ? <AboutOverlay /> : <CauseInfo />}
     </>
@@ -37,11 +37,19 @@ export const App = () => {
 
 // Main canvas with shapes
 function MainCanvas() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   return (
     <Canvas eventSource={document.getElementById("root")} eventPrefix="client" shadows camera={{ position: [0, 0, 20], fov: 50 }}>
       <color attach="background" args={["#e0e0e0"]} />
       <spotLight position={[20, 20, 10]} penumbra={1} castShadow angle={0.2} />
-      <Status position={[0, 0, -10]} />
+      <Status position={[0, 0, isMobile ? -25 : -10]} />
       <Float floatIntensity={2}>
         <Route path="/rights">
           <Knot />
@@ -150,8 +158,8 @@ function AboutOverlay() {
     <div className="about-overlay">
       <h2>About</h2>
       <p className="tagline">Data-driven founder + 2x public exits.<br />Super-Dad. WIP-Human.</p>
-      <p>
-        Market Research leader with deep knowledge of applying big data, small data, and AI to transform markets.
+      <p className="current-role">
+        Founder/CEO @ <a href="https://subconscious.ai" target="_blank" rel="noopener noreferrer">Subconscious AI</a> — Building systems that explain and predict human behavior.
       </p>
       <p className="experience">
         Previously: CSO @ Engine No. 1, Analytics Lead @ Two Sigma, Offering Director @ IBM Watson Research.
@@ -160,7 +168,9 @@ function AboutOverlay() {
       <p className="education">
         BS in Comp Sci @JohnsHopkins, MBA @NYUStern.
       </p>
-      <p>Passionate about learning, behavior, and experimental design.</p>
+      <p className="awards">
+        Green Startup of the Year — Excellence in Education. Published in Huffington Post, Inc, Entrepreneur.
+      </p>
       <div className="social-links">
         <a href="https://www.linkedin.com/in/aviyashchin/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
         <a href="https://github.com/aviyashchin" target="_blank" rel="noopener noreferrer">GitHub</a>

@@ -48,6 +48,11 @@ a:visited {
   top: 50px;
 }
 
+.nav a.active {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 .stat {
   position: absolute;
   left: 50px;
@@ -123,8 +128,23 @@ a:visited {
   opacity: 1;
 }
 
+.about-overlay .current-role {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.about-overlay .current-role a {
+  font-weight: 600;
+  margin-left: 0;
+}
+
+.about-overlay .current-role a:hover {
+  text-decoration: underline;
+}
+
 .about-overlay .experience,
-.about-overlay .education {
+.about-overlay .education,
+.about-overlay .awards {
   font-size: 0.65rem;
   opacity: 0.7;
 }
