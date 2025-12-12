@@ -49,12 +49,12 @@ function MainCanvas() {
     <Canvas
       eventSource={document.getElementById("root")}
       eventPrefix="client"
-      shadows={!isMobile}
+      shadows
       dpr={isMobile ? [1, 1.5] : [1, 2]}
       camera={{ position: [0, 0, 20], fov: 50 }}
     >
       <color attach="background" args={["#e0e0e0"]} />
-      <spotLight position={[20, 20, 10]} penumbra={1} castShadow={!isMobile} angle={0.2} />
+      <spotLight position={[20, 20, 10]} penumbra={1} castShadow angle={0.2} />
       <Status position={[0, 0, isMobile ? -50 : -10]} isMobile={isMobile} />
       <Float floatIntensity={2}>
         <Route path="/rights">
@@ -67,19 +67,17 @@ function MainCanvas() {
           <Dodecahedron isMobile={isMobile} />
         </Route>
       </Float>
-      {!isMobile && <ContactShadows scale={100} position={[0, -7.5, 0]} blur={1} far={100} opacity={0.85} />}
+      <ContactShadows scale={100} position={[0, -7.5, 0]} blur={1} far={100} opacity={0.85} />
       <Environment resolution={isMobile ? 128 : 256}>
         <Lightformer intensity={8} position={[10, 5, 0]} scale={[10, 50, 1]} onUpdate={(self) => self.lookAt(0, 0, 0)} />
         <Lightformer intensity={2} position={[-10, 5, 0]} scale={[10, 50, 1]} />
         <Lightformer intensity={4} position={[0, 10, 0]} scale={[50, 10, 1]} rotation-x={Math.PI / 2} />
       </Environment>
-      {!isMobile && (
-        <EffectComposer disableNormalPass>
-          <N8AO aoRadius={1} intensity={2} />
-          <Bloom mipmapBlur luminanceThreshold={0.8} intensity={2} levels={8} />
-          <TiltShift2 blur={0.2} />
-        </EffectComposer>
-      )}
+      <EffectComposer disableNormalPass>
+        <N8AO aoRadius={1} intensity={isMobile ? 1 : 2} />
+        <Bloom mipmapBlur luminanceThreshold={0.8} intensity={isMobile ? 1 : 2} levels={isMobile ? 4 : 8} />
+        <TiltShift2 blur={0.2} />
+      </EffectComposer>
       <Rig />
     </Canvas>
   )
@@ -98,21 +96,21 @@ function Rig() {
 }
 
 const ShapeTorus = ({ isMobile, ...props }) => (
-  <mesh receiveShadow={!isMobile} castShadow={!isMobile} {...props}>
+  <mesh receiveShadow castShadow {...props}>
     <torusGeometry args={isMobile ? [4, 1.2, 64, 32] : [4, 1.2, 128, 64]} />
     <MeshTransmissionMaterial backside backsideThickness={5} thickness={2} samples={isMobile ? 2 : 4} />
   </mesh>
 )
 
 const Knot = ({ isMobile, ...props }) => (
-  <mesh receiveShadow={!isMobile} castShadow={!isMobile} {...props}>
+  <mesh receiveShadow castShadow {...props}>
     <torusKnotGeometry args={isMobile ? [3, 1, 128, 16] : [3, 1, 256, 32]} />
     <MeshTransmissionMaterial backside backsideThickness={5} thickness={2} samples={isMobile ? 2 : 4} />
   </mesh>
 )
 
 const Dodecahedron = ({ isMobile, ...props }) => (
-  <mesh receiveShadow={!isMobile} castShadow={!isMobile} {...props}>
+  <mesh receiveShadow castShadow {...props}>
     <dodecahedronGeometry args={[4, 0]} />
     <MeshTransmissionMaterial backside backsideThickness={5} thickness={2} samples={isMobile ? 2 : 4} />
   </mesh>
