@@ -49,7 +49,7 @@ function MainCanvas() {
     <Canvas eventSource={document.getElementById("root")} eventPrefix="client" shadows camera={{ position: [0, 0, 20], fov: 50 }}>
       <color attach="background" args={["#e0e0e0"]} />
       <spotLight position={[20, 20, 10]} penumbra={1} castShadow angle={0.2} />
-      <Status position={[0, 0, isMobile ? -25 : -10]} />
+      <Status position={[0, 0, isMobile ? -50 : -10]} isMobile={isMobile} />
       <Float floatIntensity={2}>
         <Route path="/rights">
           <Knot />
@@ -110,12 +110,12 @@ const Dodecahedron = (props) => (
   </mesh>
 )
 
-function Status(props) {
+function Status({ isMobile, ...props }) {
   const [loc] = useLocation()
   return (
-    <Text fontSize={14} letterSpacing={-0.025} font={suspend(inter).default} color="black" {...props}>
+    <Text fontSize={isMobile ? 8 : 14} letterSpacing={-0.025} font={suspend(inter).default} color="black" {...props}>
       {loc}
-      <Html style={{ color: "transparent", fontSize: "33.5em" }} transform>
+      <Html style={{ color: "transparent", fontSize: isMobile ? "20em" : "33.5em" }} transform>
         {loc}
       </Html>
     </Text>
