@@ -2,7 +2,11 @@
   "name": "router-transitions",
   "version": "1.0.0",
   "description": "Shows how to implement routes and mount/unmount transition within the canvas using Wouter.",
-  "keywords": ["wouter", "router", "transitions"],
+  "keywords": [
+    "wouter",
+    "router",
+    "transitions"
+  ],
   "main": "src/index.js",
   "dependencies": {
     "@pmndrs/assets": "1.6.0",
@@ -29,5 +33,10 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
-  "browserslist": [">0.2%", "not dead", "not ie <= 11", "not op_mini all"]
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
 }
