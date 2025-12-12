@@ -2,5 +2,8 @@
   "buildCommand": "cd react-three && npm install --legacy-peer-deps && npm run build",
   "outputDirectory": "react-three/build",
   "installCommand": "echo 'Skipping root install'",
-  "framework": null
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
