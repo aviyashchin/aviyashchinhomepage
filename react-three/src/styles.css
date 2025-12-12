@@ -136,3 +136,69 @@ a:visited {
 .about-overlay .social-links a:hover {
   text-decoration: underline;
 }
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .nav {
+    right: 20px;
+    top: 20px;
+  }
+
+  .nav a {
+    margin-left: 10px;
+    font-size: 0.85rem;
+  }
+
+  .cause-info {
+    right: 20px;
+    bottom: 20px;
+    left: 20px;
+    max-width: none;
+  }
+
+  .about-overlay {
+    right: 20px;
+    bottom: 20px;
+    left: 20px;
+    max-width: none;
+  }
+
+  .about-overlay h2 {
+    font-size: 1rem;
+  }
+
+  .about-overlay p {
+    font-size: 0.65rem;
+  }
+
+  .about-overlay .tagline {
+    font-size: 0.75rem;
+  }
+
+  .about-overlay .social-links {
+    gap: 12px;
+  }
+
+  .about-overlay .social-links a {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav {
+    right: 15px;
+    top: 15px;
+  }
+
+  .nav a {
+    margin-left: 8px;
+    font-size: 0.75rem;
+  }
+
+  .cause-info,
+  .about-overlay {
+    right: 15px;
+    bottom: 15px;
+    left: 15px;
+  }
+}

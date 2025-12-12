@@ -83,8 +83,8 @@ function TurtleCanvas() {
     <Canvas shadows camera={{ position: [30, 0, -3], fov: 35, near: 1, far: 50 }}>
       <color attach="background" args={['#c6e5db']} />
       <Aquarium position={[0, 0.25, 0]}>
-        <Float rotationIntensity={2} floatIntensity={10} speed={2}>
-          <Turtle position={[0, -0.5, -1]} rotation={[0, Math.PI, 0]} scale={23} />
+        <Float rotationIntensity={0.5} floatIntensity={3} speed={2}>
+          <Turtle position={[0, -0.5, -1]} rotation={[0, Math.PI, 0]} scale={20} />
         </Float>
         <Instances renderOrder={-1000}>
           <sphereGeometry args={[1, 64, 64]} />
