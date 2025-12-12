@@ -13,11 +13,11 @@ const TurtlePage = lazy(() => import('./TurtlePage').then(m => ({ default: m.Tur
 
 export const App = () => {
   const [loc] = useLocation()
-  const isAbout = loc === "/about"
+  const isHome = loc === "/"
 
   return (
     <>
-      {isAbout ? (
+      {isHome ? (
         <Suspense fallback={<div className="loading">Loading...</div>}>
           <TurtlePage />
         </Suspense>
@@ -25,12 +25,12 @@ export const App = () => {
         <MainCanvas />
       )}
       <div className="nav">
-        <Link to="/">rights</Link>
+        <Link to="/">about</Link>
+        <Link to="/rights">rights</Link>
         <Link to="/activism">activism</Link>
         <Link to="/charity">charity</Link>
-        <Link to="/about">about</Link>
       </div>
-      {isAbout ? <AboutOverlay /> : <CauseInfo />}
+      {isHome ? <AboutOverlay /> : <CauseInfo />}
     </>
   )
 }
@@ -43,7 +43,7 @@ function MainCanvas() {
       <spotLight position={[20, 20, 10]} penumbra={1} castShadow angle={0.2} />
       <Status position={[0, 0, -10]} />
       <Float floatIntensity={2}>
-        <Route path="/">
+        <Route path="/rights">
           <Knot />
         </Route>
         <Route path="/activism">
@@ -104,19 +104,18 @@ const Dodecahedron = (props) => (
 
 function Status(props) {
   const [loc] = useLocation()
-  const text = loc === "/" ? "/rights" : loc
   return (
     <Text fontSize={14} letterSpacing={-0.025} font={suspend(inter).default} color="black" {...props}>
-      {text}
+      {loc}
       <Html style={{ color: "transparent", fontSize: "33.5em" }} transform>
-        {text}
+        {loc}
       </Html>
     </Text>
   )
 }
 
 const causeData = {
-  "/": {
+  "/rights": {
     title: "Non-Human Rights",
     description: "Working to include AI in Non-Human rights efforts.",
     url: "https://www.nonhumanrights.org/"
@@ -135,7 +134,7 @@ const causeData = {
 
 function CauseInfo() {
   const [loc] = useLocation()
-  const cause = causeData[loc] || causeData["/"]
+  const cause = causeData[loc] || causeData["/rights"]
   return (
     <div className="cause-info">
       <a href={cause.url} target="_blank" rel="noopener noreferrer">
@@ -150,7 +149,7 @@ function AboutOverlay() {
   return (
     <div className="about-overlay">
       <h2>About</h2>
-      <p className="tagline">Data-driven founder + 2x public exits. Super-Dad. WIP-Human.</p>
+      <p className="tagline">Data-driven founder + 2x public exits.<br />Super-Dad. WIP-Human.</p>
       <p>
         Market Research leader with deep knowledge of applying big data, small data, and AI to transform markets.
       </p>
