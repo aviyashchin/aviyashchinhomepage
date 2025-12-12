@@ -17,11 +17,11 @@ export const App = () => (
         <Route path="/">
           <Knot />
         </Route>
-        <Route path="/torus">
+        <Route path="/activism">
           <Torus />
         </Route>
-        <Route path="/sphere">
-          <Sphere />
+        <Route path="/charity">
+          <Dodecahedron />
         </Route>
       </Float>
       <ContactShadows scale={100} position={[0, -7.5, 0]} blur={1} far={100} opacity={0.85} />
@@ -36,10 +36,11 @@ export const App = () => (
       <Rig />
     </Canvas>
     <div className="nav">
-      <Link to="/">knot</Link>
-      <Link to="/torus">torus</Link>
-      <Link to="/sphere">sphere</Link>
+      <Link to="/">rights</Link>
+      <Link to="/activism">activism</Link>
+      <Link to="/charity">charity</Link>
     </div>
+    <CauseInfo />
   </>
 )
 
@@ -69,16 +70,16 @@ const Knot = (props) => (
   </mesh>
 )
 
-const Sphere = (props) => (
+const Dodecahedron = (props) => (
   <mesh receiveShadow castShadow {...props}>
-    <sphereGeometry args={[4, 64, 64]} />
+    <dodecahedronGeometry args={[4, 0]} />
     <MeshTransmissionMaterial backside backsideThickness={5} thickness={2} />
   </mesh>
 )
 
 function Status(props) {
   const [loc] = useLocation()
-  const text = loc === "/" ? "/knot" : loc
+  const text = loc === "/" ? "/rights" : loc
   return (
     <Text fontSize={14} letterSpacing={-0.025} font={suspend(inter).default} color="black" {...props}>
       {text}
@@ -86,5 +87,36 @@ function Status(props) {
         {text}
       </Html>
     </Text>
+  )
+}
+
+const causeData = {
+  "/": {
+    title: "Non-Human Rights",
+    description: "Working to include AI in Non-Human rights efforts.",
+    url: "https://www.nonhumanrights.org/"
+  },
+  "/activism": {
+    title: "Activism",
+    description: "A better way to align corporations with their externalities.",
+    url: "https://www.nytimes.com/2021/06/23/magazine/exxon-mobil-engine-no-1-board.html"
+  },
+  "/charity": {
+    title: "Enduring Hearts",
+    description: "I serve on the board of Enduring Hearts, a pediatric heart transplant charity.",
+    url: "https://www.enduringhearts.org/about-us/"
+  }
+}
+
+function CauseInfo() {
+  const [loc] = useLocation()
+  const cause = causeData[loc] || causeData["/"]
+  return (
+    <div className="cause-info">
+      <a href={cause.url} target="_blank" rel="noopener noreferrer">
+        {cause.title}
+      </a>
+      <p>{cause.description}</p>
+    </div>
   )
 }
