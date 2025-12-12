@@ -83,8 +83,8 @@ function TurtleCanvas() {
     <Canvas shadows camera={{ position: [30, 0, -3], fov: 35, near: 1, far: 50 }}>
       <color attach="background" args={['#c6e5db']} />
       <Aquarium position={[0, 0.25, 0]}>
-        <Float rotationIntensity={0.5} floatIntensity={3} speed={2}>
-          <Turtle position={[0, -0.5, -1]} rotation={[0, Math.PI, 0]} scale={20} />
+        <Float rotationIntensity={0.3} floatIntensity={2} speed={2}>
+          <Turtle position={[0, -0.5, -1]} rotation={[0, Math.PI, 0]} scale={17} />
         </Float>
         <Instances renderOrder={-1000}>
           <sphereGeometry args={[1, 64, 64]} />
@@ -158,7 +158,7 @@ function Turtle(props) {
     mixer.timeScale = 0.5
     actions['Swim Cycle']?.play()
   }, [actions, mixer])
-  useFrame((state) => (scene.rotation.z = Math.sin(state.clock.elapsedTime / 4) / 2))
+  useFrame((state) => (scene.rotation.z = Math.sin(state.clock.elapsedTime / 4) / 4))
   return <primitive object={scene} {...props} />
 }
 
