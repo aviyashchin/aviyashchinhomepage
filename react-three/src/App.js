@@ -1,12 +1,11 @@
 import { Canvas, useFrame } from "@react-three/fiber"
-import { useGLTF, Float, Lightformer, Text, Html, ContactShadows, Environment, MeshTransmissionMaterial } from "@react-three/drei"
+import { Float, Lightformer, Text, Html, ContactShadows, Environment, MeshTransmissionMaterial } from "@react-three/drei"
 import { Bloom, EffectComposer, N8AO, TiltShift2 } from "@react-three/postprocessing"
 import { Route, Link, useLocation } from "wouter"
 import { suspend } from "suspend-react"
 import { easing } from "maath"
 
 const inter = import("@pmndrs/assets/fonts/inter_regular.woff")
-useGLTF.preload("/bomb-gp.glb")
 
 export const App = () => (
   <>
@@ -21,8 +20,8 @@ export const App = () => (
         <Route path="/torus">
           <Torus />
         </Route>
-        <Route path="/bomb">
-          <Bomb scale={0.7} />
+        <Route path="/sphere">
+          <Sphere />
         </Route>
       </Float>
       <ContactShadows scale={100} position={[0, -7.5, 0]} blur={1} far={100} opacity={0.85} />
@@ -36,10 +35,10 @@ export const App = () => (
       </EffectComposer>
       <Rig />
     </Canvas>
-    <div class="nav">
+    <div className="nav">
       <Link to="/">knot</Link>
       <Link to="/torus">torus</Link>
-      <Link to="/bomb">bomb</Link>
+      <Link to="/sphere">sphere</Link>
     </div>
   </>
 )
@@ -56,13 +55,6 @@ function Rig() {
   })
 }
 
-const Drop = (props) => (
-  <mesh>
-    <sphereGeometry args={[1, 64, 64]} />
-    <MeshTransmissionMaterial backside backsideThickness={5} thickness={2} />
-  </mesh>
-)
-
 const Torus = (props) => (
   <mesh receiveShadow castShadow {...props}>
     <torusGeometry args={[4, 1.2, 128, 64]} />
@@ -77,14 +69,12 @@ const Knot = (props) => (
   </mesh>
 )
 
-function Bomb(props) {
-  const { nodes } = useGLTF("/bomb-gp.glb")
-  return (
-    <mesh receiveShadow castShadow geometry={nodes.Little_Boy_Little_Boy_Material_0.geometry} {...props}>
-      <MeshTransmissionMaterial backside backsideThickness={10} thickness={5} />
-    </mesh>
-  )
-}
+const Sphere = (props) => (
+  <mesh receiveShadow castShadow {...props}>
+    <sphereGeometry args={[4, 64, 64]} />
+    <MeshTransmissionMaterial backside backsideThickness={5} thickness={2} />
+  </mesh>
+)
 
 function Status(props) {
   const [loc] = useLocation()
