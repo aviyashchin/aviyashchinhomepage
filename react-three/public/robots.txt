@@ -1,0 +1,10 @@
+# robots.txt for aviyashchin.com
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://aviyashchin.com/sitemap.xml
+
+# Crawl-delay for politeness
+Crawl-delay: 1

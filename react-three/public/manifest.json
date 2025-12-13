@@ -1,0 +1,19 @@
+{
+  "short_name": "Avi Yashchin",
+  "name": "Avi Yashchin | Founder, CEO & Data-Driven Entrepreneur",
+  "description": "Personal website of Avi Yashchin - Founder/CEO of Subconscious AI, data-driven entrepreneur with 2x public exits.",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#e0e0e0",
+  "background_color": "#e0e0e0",
+  "orientation": "portrait-primary",
+  "categories": ["business", "portfolio", "personal"],
+  "lang": "en-US"
+}
