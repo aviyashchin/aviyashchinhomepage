@@ -175,7 +175,7 @@ function AboutOverlay() {
         BS in Comp Sci @JohnsHopkins, MBA @NYUStern.
       </p>
       <p className="awards">
-        Green Startup of the Year — Excellence in Education. Published in Huffington Post, Inc, Entrepreneur.
+        Green Startup of the Year — Excellence in Education.
       </p>
       <div className="social-links">
         <a href="https://www.linkedin.com/in/aviyashchin/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
