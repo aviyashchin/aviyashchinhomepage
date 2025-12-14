@@ -11,6 +11,16 @@ const inter = import("@pmndrs/assets/fonts/inter_regular.woff")
 // Lazy load turtle page (2MB model)
 const TurtlePage = lazy(() => import('./TurtlePage').then(m => ({ default: m.TurtleCanvas })))
 
+// Loading spinner component
+function LoadingSpinner() {
+  return (
+    <div className="loading">
+      <div className="loading-spinner"></div>
+      <span>Loading</span>
+    </div>
+  )
+}
+
 export const App = () => {
   const [loc] = useLocation()
   const isHome = loc === "/"
@@ -18,7 +28,7 @@ export const App = () => {
   return (
     <>
       {isHome ? (
-        <Suspense fallback={<div className="loading">Loading...</div>}>
+        <Suspense fallback={<LoadingSpinner />}>
           <TurtlePage />
         </Suspense>
       ) : (
@@ -178,6 +188,7 @@ function AboutOverlay() {
         Green Startup of the Year — Excellence in Education.
       </p>
       <div className="social-links">
+        <a href="mailto:avi.yashchin@gmail.com">Email</a>
         <a href="https://www.linkedin.com/in/aviyashchin/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
         <a href="https://github.com/aviyashchin" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://www.instagram.com/aviyashchin/" target="_blank" rel="noopener noreferrer">Instagram</a>
