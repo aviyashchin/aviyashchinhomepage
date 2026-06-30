@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Canvas, useFrame } from "@react-three/fiber"
+import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { Float } from "@react-three/drei"
 import { useGLTF, useAnimations, Instance, Instances, CameraControls } from "@react-three/drei"
 
@@ -33,6 +33,7 @@ export function TurtleCanvas() {
       camera={{ position: [30, 0, -3], fov: 35, near: 1, far: 50 }}
     >
       <color attach="background" args={['#e0e0e0']} />
+      <AutoInvalidate fps={2} />
       <ambientLight intensity={0.45} />
       <directionalLight position={[-5, 10, -5]} intensity={1.5} />
       <Aquarium position={[0, 0.25, 0]}>
@@ -50,6 +51,20 @@ export function TurtleCanvas() {
       <CameraControls truckSpeed={0} dollySpeed={0} minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
     </Canvas>
   )
+}
+
+export function AutoInvalidate({ fps = 8 }) {
+  const three = useThree()
+  const invalidate = typeof three === 'function' ? three : three?.invalidate
+
+  useEffect(() => {
+    if (typeof invalidate !== 'function') return undefined
+
+    const intervalId = setInterval(invalidate, 1000 / fps)
+    return () => clearInterval(intervalId)
+  }, [fps, invalidate])
+
+  return null
 }
 
 // Aquarium glass container
