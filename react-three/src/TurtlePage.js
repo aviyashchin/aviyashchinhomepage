@@ -33,7 +33,7 @@ export function TurtleCanvas() {
       camera={{ position: [30, 0, -3], fov: 35, near: 1, far: 50 }}
     >
       <color attach="background" args={['#e0e0e0']} />
-      <AutoInvalidate fps={2} />
+      <AutoInvalidate fps={12} />
       <ambientLight intensity={0.45} />
       <directionalLight position={[-5, 10, -5]} intensity={1.5} />
       <Aquarium position={[0, 0.25, 0]}>
@@ -60,6 +60,7 @@ export function AutoInvalidate({ fps = 8 }) {
   useEffect(() => {
     if (typeof invalidate !== 'function') return undefined
 
+    invalidate()
     const intervalId = setInterval(invalidate, 1000 / fps)
     return () => clearInterval(intervalId)
   }, [fps, invalidate])

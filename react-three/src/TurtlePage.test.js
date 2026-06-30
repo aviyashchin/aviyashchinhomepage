@@ -5,12 +5,18 @@ import { createRoot } from "react-dom/client"
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 let canvasProps
+let autoInvalidateProps
 const mockInvalidate = jest.fn()
 let mockIntervalCallback
 
 jest.mock("@react-three/fiber", () => ({
   Canvas: ({ children, ...props }) => {
+    const React = require("react")
+    const autoInvalidate = React.Children.toArray(children).find((child) => child.type?.name === "AutoInvalidate")
+
     canvasProps = props
+    autoInvalidateProps = autoInvalidate?.props
+
     return <div data-testid="turtle-canvas" />
   },
   useFrame: jest.fn(),
@@ -41,6 +47,7 @@ describe("TurtleCanvas", () => {
 
   beforeEach(() => {
     canvasProps = undefined
+    autoInvalidateProps = undefined
     mockInvalidate.mockClear()
     useThree.mockReturnValue({ invalidate: mockInvalidate })
     mockIntervalCallback = undefined
@@ -67,13 +74,19 @@ describe("TurtleCanvas", () => {
     expect(canvasProps.frameloop).toBe("demand")
   })
 
+  it("uses a smooth automatic render cadence on the page", () => {
+    act(() => root.render(<TurtleCanvas />))
+
+    expect(autoInvalidateProps.fps).toBeGreaterThanOrEqual(12)
+  })
+
   it("invalidates frames automatically so the turtle animates without a click", async () => {
     await act(async () => root.render(<AutoInvalidate fps={8} />))
 
     expect(global.setInterval).toHaveBeenCalledWith(expect.any(Function), 125)
-    expect(mockInvalidate).not.toHaveBeenCalled()
+    expect(mockInvalidate).toHaveBeenCalledTimes(1)
 
     act(() => mockIntervalCallback())
-    expect(mockInvalidate).toHaveBeenCalledTimes(1)
+    expect(mockInvalidate).toHaveBeenCalledTimes(2)
   })
 })
