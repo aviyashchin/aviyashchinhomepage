@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState, useEffect } from 'react'
 import { Canvas, useFrame } from "@react-three/fiber"
-import { Float, Lightformer, Text, Html, ContactShadows, Environment, MeshTransmissionMaterial } from "@react-three/drei"
+import { Float, Lightformer, Text, ContactShadows, Environment, MeshTransmissionMaterial } from "@react-three/drei"
 import { Bloom, EffectComposer, N8AO, TiltShift2 } from "@react-three/postprocessing"
 import { Route, Link, useLocation } from "wouter"
 import { suspend } from "suspend-react"
@@ -11,6 +11,23 @@ const inter = import("@pmndrs/assets/fonts/inter_regular.woff")
 
 // Lazy load turtle page (2MB model)
 const TurtlePage = lazy(() => import('./TurtlePage').then(m => ({ default: m.TurtleCanvas })))
+
+const mainSceneQuality = {
+  mobile: {
+    dpr: [1, 1.25],
+    transmission: { samples: 2, resolution: 256, backsideResolution: 128 },
+    contactShadowResolution: 192,
+    composerMultisampling: 0,
+    bloomLevels: 4
+  },
+  desktop: {
+    dpr: [1, 1.5],
+    transmission: { samples: 2, resolution: 256, backsideResolution: 128 },
+    contactShadowResolution: 256,
+    composerMultisampling: 2,
+    bloomLevels: 4
+  }
+}
 
 export const App = () => {
   const [loc] = useLocation()
@@ -44,6 +61,7 @@ export const App = () => {
 // Main canvas with shapes
 function MainCanvas() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  const quality = isMobile ? mainSceneQuality.mobile : mainSceneQuality.desktop
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768)
@@ -56,7 +74,8 @@ function MainCanvas() {
       eventSource={document.getElementById("root")}
       eventPrefix="client"
       shadows
-      dpr={isMobile ? [1, 1.5] : [1, 2]}
+      frameloop="demand"
+      dpr={quality.dpr}
       camera={{ position: [0, 0, 20], fov: 50 }}
     >
       <color attach="background" args={["#e0e0e0"]} />
@@ -64,24 +83,24 @@ function MainCanvas() {
       <Status position={[0, 0, isMobile ? -50 : -10]} isMobile={isMobile} />
       <Float floatIntensity={2}>
         <Route path="/rights">
-          <Knot isMobile={isMobile} />
+          <Knot isMobile={isMobile} transmissionQuality={quality.transmission} />
         </Route>
         <Route path="/activism">
-          <ShapeTorus isMobile={isMobile} />
+          <ShapeTorus isMobile={isMobile} transmissionQuality={quality.transmission} />
         </Route>
         <Route path="/charity">
-          <Dodecahedron isMobile={isMobile} />
+          <Dodecahedron isMobile={isMobile} transmissionQuality={quality.transmission} />
         </Route>
       </Float>
-      <ContactShadows scale={100} position={[0, -7.5, 0]} blur={1} far={100} opacity={0.85} />
+      <ContactShadows scale={100} position={[0, -7.5, 0]} blur={1} far={100} opacity={0.85} resolution={quality.contactShadowResolution} />
       <Environment resolution={isMobile ? 128 : 256}>
         <Lightformer intensity={8} position={[10, 5, 0]} scale={[10, 50, 1]} onUpdate={(self) => self.lookAt(0, 0, 0)} />
         <Lightformer intensity={2} position={[-10, 5, 0]} scale={[10, 50, 1]} />
         <Lightformer intensity={4} position={[0, 10, 0]} scale={[50, 10, 1]} rotation-x={Math.PI / 2} />
       </Environment>
-      <EffectComposer disableNormalPass>
+      <EffectComposer disableNormalPass multisampling={quality.composerMultisampling}>
         <N8AO aoRadius={1} intensity={isMobile ? 1 : 2} />
-        <Bloom mipmapBlur luminanceThreshold={0.8} intensity={isMobile ? 1 : 2} levels={isMobile ? 4 : 8} />
+        <Bloom mipmapBlur luminanceThreshold={0.8} intensity={isMobile ? 1 : 2} levels={quality.bloomLevels} />
         <TiltShift2 blur={0.2} />
       </EffectComposer>
       <Rig />
@@ -101,24 +120,28 @@ function Rig() {
   })
 }
 
-const ShapeTorus = ({ isMobile, ...props }) => (
+const GlassMaterial = ({ quality }) => (
+  <MeshTransmissionMaterial backside backsideThickness={5} thickness={2} {...quality} />
+)
+
+const ShapeTorus = ({ isMobile, transmissionQuality, ...props }) => (
   <mesh receiveShadow castShadow {...props}>
     <torusGeometry args={isMobile ? [4, 1.2, 64, 32] : [4, 1.2, 128, 64]} />
-    <MeshTransmissionMaterial backside backsideThickness={5} thickness={2} samples={isMobile ? 2 : 4} />
+    <GlassMaterial quality={transmissionQuality} />
   </mesh>
 )
 
-const Knot = ({ isMobile, ...props }) => (
+const Knot = ({ isMobile, transmissionQuality, ...props }) => (
   <mesh receiveShadow castShadow {...props}>
-    <torusKnotGeometry args={isMobile ? [3, 1, 128, 16] : [3, 1, 256, 32]} />
-    <MeshTransmissionMaterial backside backsideThickness={5} thickness={2} samples={isMobile ? 2 : 4} />
+    <torusKnotGeometry args={isMobile ? [3, 1, 128, 16] : [3, 1, 128, 16]} />
+    <GlassMaterial quality={transmissionQuality} />
   </mesh>
 )
 
-const Dodecahedron = ({ isMobile, ...props }) => (
+const Dodecahedron = ({ isMobile, transmissionQuality, ...props }) => (
   <mesh receiveShadow castShadow {...props}>
     <dodecahedronGeometry args={[4, 0]} />
-    <MeshTransmissionMaterial backside backsideThickness={5} thickness={2} samples={isMobile ? 2 : 4} />
+    <GlassMaterial quality={transmissionQuality} />
   </mesh>
 )
 
@@ -127,9 +150,6 @@ function Status({ isMobile, ...props }) {
   return (
     <Text fontSize={isMobile ? 8 : 14} letterSpacing={-0.025} font={suspend(inter).default} color="black" {...props}>
       {loc}
-      <Html style={{ color: "transparent", fontSize: isMobile ? "20em" : "33.5em" }} transform>
-        {loc}
-      </Html>
     </Text>
   )
 }
