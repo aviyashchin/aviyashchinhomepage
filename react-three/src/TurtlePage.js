@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Canvas, useFrame } from "@react-three/fiber"
 import { Float } from "@react-three/drei"
 import { useGLTF, useAnimations, Instance, Instances, CameraControls } from "@react-three/drei"
-import { FrontSide } from "three"
+import { FrontSide, MeshPhongMaterial } from "three"
 
 // Bubble configuration for turtle aquarium
 const spheres = [
@@ -28,7 +28,8 @@ const TURTLE_MODEL = '/turtle-draco.glb'
 export function TurtleCanvas() {
   return (
     <Canvas
-      dpr={0.75}
+      dpr={0.5}
+      flat
       gl={{ antialias: false, powerPreference: "high-performance" }}
       camera={{ position: [30, 0, -3], fov: 35, near: 1, far: 50 }}
     >
@@ -86,7 +87,7 @@ function Turtle(props) {
   const { scene, animations } = useGLTF(TURTLE_MODEL)
   const { actions, mixer } = useAnimations(animations, scene)
   useEffect(() => {
-    setFrontSideMaterials(scene)
+    optimizeTurtleMaterials(scene)
   }, [scene])
   useEffect(() => {
     mixer.timeScale = 0.5
@@ -96,12 +97,26 @@ function Turtle(props) {
   return <primitive object={scene} {...props} />
 }
 
-export function setFrontSideMaterials(scene) {
+export function optimizeTurtleMaterials(scene) {
   scene.traverse((object) => {
     const materials = Array.isArray(object.material) ? object.material : object.material ? [object.material] : []
-    materials.forEach((material) => {
-      material.side = FrontSide
-      material.needsUpdate = true
+    materials.forEach((material, index) => {
+      const optimized = createTurtleMaterial(material)
+
+      if (Array.isArray(object.material)) object.material[index] = optimized
+      else object.material = optimized
     })
+  })
+}
+
+export function createTurtleMaterial(source) {
+  return new MeshPhongMaterial({
+    color: source.color || 'white',
+    map: source.map || null,
+    alphaMap: source.alphaMap || null,
+    transparent: source.transparent,
+    opacity: source.opacity,
+    side: FrontSide,
+    skinning: source.skinning
   })
 }

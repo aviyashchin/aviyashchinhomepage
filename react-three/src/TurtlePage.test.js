@@ -9,7 +9,10 @@ let heartbeatProps
 
 jest.mock("three", () => ({
   DoubleSide: 2,
-  FrontSide: 0
+  FrontSide: 0,
+  MeshPhongMaterial: jest.fn(function MeshPhongMaterial(props) {
+    Object.assign(this, props)
+  })
 }))
 
 jest.mock("@react-three/fiber", () => ({
@@ -43,8 +46,8 @@ jest.mock("@react-three/drei", () => ({
 }))
 
 describe("TurtleCanvas", () => {
-  const { TurtleCanvas, setFrontSideMaterials } = require("./TurtlePage")
-  const { DoubleSide, FrontSide } = require("three")
+  const { TurtleCanvas, optimizeTurtleMaterials } = require("./TurtlePage")
+  const { DoubleSide, FrontSide, MeshPhongMaterial } = require("three")
   let container
   let root
 
@@ -70,7 +73,13 @@ describe("TurtleCanvas", () => {
   it("caps the internal drawing buffer below full DPR", () => {
     act(() => root.render(<TurtleCanvas />))
 
-    expect(canvasProps.dpr).toBe(0.75)
+    expect(canvasProps.dpr).toBe(0.5)
+  })
+
+  it("uses flat canvas color output to avoid extra tone-mapping work", () => {
+    act(() => root.render(<TurtleCanvas />))
+
+    expect(canvasProps.flat).toBe(true)
   })
 
   it("does not cap idle animation with a manual invalidation heartbeat", () => {
@@ -79,13 +88,32 @@ describe("TurtleCanvas", () => {
     expect(heartbeatProps).toBeUndefined()
   })
 
-  it("renders turtle materials front-sided to avoid extra fragment work", () => {
-    const material = { side: DoubleSide, needsUpdate: false }
-    const scene = { traverse: (visit) => visit({ material }) }
+  it("replaces turtle PBR materials with front-sided textured Phong materials", () => {
+    const map = { isTexture: true }
+    const alphaMap = { isTexture: true }
+    const material = {
+      color: "green",
+      map,
+      alphaMap,
+      transparent: true,
+      opacity: 0.8,
+      side: DoubleSide,
+      skinning: true
+    }
+    const object = { material }
+    const scene = { traverse: (visit) => visit(object) }
 
-    setFrontSideMaterials(scene)
+    optimizeTurtleMaterials(scene)
 
-    expect(material.side).toBe(FrontSide)
-    expect(material.needsUpdate).toBe(true)
+    expect(MeshPhongMaterial).toHaveBeenCalledWith({
+      color: "green",
+      map,
+      alphaMap,
+      transparent: true,
+      opacity: 0.8,
+      side: FrontSide,
+      skinning: true
+    })
+    expect(object.material).toBeInstanceOf(MeshPhongMaterial)
   })
 })
