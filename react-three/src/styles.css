@@ -168,6 +168,113 @@ a:visited {
   text-decoration: underline;
 }
 
+.demos-page {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow: auto;
+  min-height: 100%;
+  padding: 42px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(224, 224, 224, 0.92)),
+    #e0e0e0;
+  color: #080808;
+}
+
+.demos-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 0 24px 0;
+}
+
+.demos-kicker,
+.demo-card-header p {
+  margin: 0 0 6px 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.demos-header h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 7vw, 6.8rem);
+  line-height: 0.86;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.demos-home,
+.demo-card-header a {
+  margin: 0;
+  border-bottom: 1px solid currentColor;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.demos-note {
+  max-width: 840px;
+  margin: 0 0 28px 0;
+  border-left: 3px solid #2f6f8f;
+  padding: 0 0 0 16px;
+}
+
+.demos-note p,
+.demo-note {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  opacity: 0.72;
+}
+
+.demos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  padding-bottom: 42px;
+}
+
+.demo-card {
+  min-width: 0;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 8px;
+  background: rgba(245, 245, 242, 0.82);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.demo-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 16px 12px 16px;
+}
+
+.demo-card-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.demo-card iframe {
+  display: block;
+  width: 100%;
+  height: clamp(300px, 38vw, 540px);
+  border: 0;
+  background: #111;
+}
+
+.demo-note {
+  padding: 12px 16px 16px 16px;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .nav {
@@ -213,6 +320,24 @@ a:visited {
   .about-overlay .social-links a {
     font-size: 0.7rem;
   }
+
+  .demos-page {
+    padding: 24px 18px;
+  }
+
+  .demos-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .demos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .demo-card iframe {
+    height: 360px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -231,5 +356,18 @@ a:visited {
     right: 15px;
     bottom: 15px;
     left: 15px;
+  }
+
+  .demos-page {
+    padding: 18px 12px;
+  }
+
+  .demo-card-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .demo-card iframe {
+    height: 320px;
   }
 }

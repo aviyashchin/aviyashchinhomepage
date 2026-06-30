@@ -5,6 +5,7 @@ import { Bloom, EffectComposer, N8AO, TiltShift2 } from "@react-three/postproces
 import { Route, Link, useLocation } from "wouter"
 import { suspend } from "suspend-react"
 import { easing } from "maath"
+import { DemosPage } from "./DemosPage"
 
 const inter = import("@pmndrs/assets/fonts/inter_regular.woff")
 
@@ -14,6 +15,11 @@ const TurtlePage = lazy(() => import('./TurtlePage').then(m => ({ default: m.Tur
 export const App = () => {
   const [loc] = useLocation()
   const isHome = loc === "/"
+  const isDemos = loc === "/demos" || loc === "/demos/"
+
+  if (isDemos) {
+    return <DemosPage />
+  }
 
   return (
     <>
