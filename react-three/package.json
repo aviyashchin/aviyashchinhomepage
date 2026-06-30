@@ -31,7 +31,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "perf:rights": "node scripts/profile-rights.mjs",
+    "perf:route": "node scripts/profile-rights.mjs",
+    "perf:rights": "node scripts/profile-rights.mjs --url http://127.0.0.1:3101/rights",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },

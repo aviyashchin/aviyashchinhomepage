@@ -32,6 +32,10 @@ jest.mock("@react-three/postprocessing", () => ({
   TiltShift2: () => <div />
 }))
 
+jest.mock("./TurtlePage", () => ({
+  TurtleCanvas: () => <div data-testid="turtle-canvas" />
+}))
+
 jest.mock("wouter", () => ({
   Link: ({ children, to, className }) => (
     <a className={className} href={to}>{children}</a>
@@ -50,6 +54,33 @@ jest.mock("maath", () => ({
   easing: { damp3: jest.fn() }
 }))
 
+describe("App about route", () => {
+  let container
+  let root
+
+  beforeEach(() => {
+    window.history.pushState({}, "", "/about")
+    container = document.createElement("div")
+    document.body.appendChild(container)
+    root = createRoot(container)
+  })
+
+  afterEach(() => {
+    act(() => root.unmount())
+    container.remove()
+    window.history.pushState({}, "", "/")
+  })
+
+  it("renders the about page at /about", async () => {
+    await act(async () => root.render(<App />))
+
+    expect(container.textContent).toContain("Data-driven founder")
+    expect(container.textContent).toContain("Subconscious AI")
+    expect(container.textContent).not.toContain("Non-Human Rights")
+    expect(container.querySelector(".nav a.active")?.textContent).toBe("about")
+  })
+})
+
 describe("App demos route", () => {
   let container
   let root
@@ -67,8 +98,8 @@ describe("App demos route", () => {
     window.history.pushState({}, "", "/")
   })
 
-  it("renders the hidden demos page with official Three.js examples", () => {
-    act(() => root.render(<App />))
+  it("renders the hidden demos page with official Three.js examples", async () => {
+    await act(async () => root.render(<App />))
 
     const frames = Array.from(container.querySelectorAll("iframe"))
     const sources = frames.map((frame) => frame.getAttribute("src"))
