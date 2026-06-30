@@ -2,15 +2,15 @@
 
 import { chromium } from "playwright"
 
-const DEFAULT_URL = "http://127.0.0.1:3101/rights"
+const DEFAULT_URL = "http://127.0.0.1:3101/"
 const DEFAULT_DURATION_MS = 5000
 const DEFAULT_TIMEOUT_MS = 15000
 const DEFAULT_CHANNEL = "chrome"
 
 function printHelp() {
-  console.log(`Usage: npm run perf:rights -- [options]
+  console.log(`Usage: npm run perf:route -- [options]
 
-Profiles the React Three /rights route in Chrome with Playwright.
+Profiles a React Three route in Chrome with Playwright.
 
 Options:
   --url <url>          Page URL to profile. Default: ${DEFAULT_URL}
@@ -21,16 +21,34 @@ Options:
                        Default: ${DEFAULT_CHANNEL}
   --headed             Run Chrome headed instead of headless.
   --json               Print only JSON.
+  --max-frame-p95 <ms> Fail when frame p95 exceeds this value.
+  --max-long-task-total <ms>
+                       Fail when total long-task time exceeds this value.
+  --max-console-warnings <count>
+                       Fail when warning/error console messages exceed this value.
   --help               Show this help.
 `)
 }
 
 function readOption(args, name, fallback) {
-  const eq = args.find((arg) => arg.startsWith(`${name}=`))
-  if (eq) return eq.slice(name.length + 1)
-  const index = args.indexOf(name)
-  if (index !== -1 && args[index + 1]) return args[index + 1]
+  for (let index = args.length - 1; index >= 0; index -= 1) {
+    const arg = args[index]
+    if (arg.startsWith(`${name}=`)) return arg.slice(name.length + 1)
+    if (arg === name && args[index + 1]) return args[index + 1]
+  }
   return fallback
+}
+
+function readOptionalNumber(args, name) {
+  const value = readOption(args, name, null)
+  if (value === null) return null
+
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error(`${name} must be a non-negative number`)
+  }
+
+  return parsed
 }
 
 function parseArgs(argv) {
@@ -56,7 +74,12 @@ function parseArgs(argv) {
     timeout,
     channel: readOption(argv, "--channel", DEFAULT_CHANNEL),
     headed: argv.includes("--headed"),
-    json: argv.includes("--json")
+    json: argv.includes("--json"),
+    thresholds: {
+      maxFrameP95Ms: readOptionalNumber(argv, "--max-frame-p95"),
+      maxLongTaskTotalMs: readOptionalNumber(argv, "--max-long-task-total"),
+      maxConsoleWarnings: readOptionalNumber(argv, "--max-console-warnings")
+    }
   }
 }
 
@@ -76,8 +99,48 @@ function delta(after, before, name) {
   return (after[name] || 0) - (before[name] || 0)
 }
 
+function evaluateThresholds(report) {
+  const checks = []
+  const { thresholds } = report.options
+
+  if (thresholds.maxFrameP95Ms !== null) {
+    checks.push({
+      name: "frame p95",
+      actual: report.frames.p95Ms,
+      max: thresholds.maxFrameP95Ms,
+      unit: "ms"
+    })
+  }
+
+  if (thresholds.maxLongTaskTotalMs !== null) {
+    checks.push({
+      name: "long task total",
+      actual: report.longTasks.totalDurationMs,
+      max: thresholds.maxLongTaskTotalMs,
+      unit: "ms"
+    })
+  }
+
+  if (thresholds.maxConsoleWarnings !== null) {
+    checks.push({
+      name: "console warnings/errors",
+      actual: report.console.warningOrErrorCount,
+      max: thresholds.maxConsoleWarnings,
+      unit: ""
+    })
+  }
+
+  return {
+    passed: checks.every((check) => check.actual <= check.max),
+    checks: checks.map((check) => ({
+      ...check,
+      passed: check.actual <= check.max
+    }))
+  }
+}
+
 function printHuman(report) {
-  console.log(`Rights page performance profile
+  console.log(`Route performance profile
 URL: ${report.url}
 Status: ${report.status}
 Readiness: domcontentloaded + canvas selector; networkidle intentionally skipped
@@ -129,6 +192,15 @@ Console:
 Page errors:       ${report.pageErrors.length}
 Request failures:  ${report.requestFailures.length}`)
 
+  if (report.thresholds.checks.length) {
+    console.log("\nThresholds:")
+    for (const check of report.thresholds.checks) {
+      const actual = check.unit === "ms" ? formatMs(check.actual) : check.actual
+      const max = check.unit === "ms" ? formatMs(check.max) : check.max
+      console.log(`  ${check.passed ? "pass" : "fail"} ${check.name}: ${actual} <= ${max}`)
+    }
+  }
+
   if (report.console.messages.length) {
     console.log("\nFirst console messages:")
     for (const message of report.console.messages.slice(0, 8)) {
@@ -145,7 +217,7 @@ Request failures:  ${report.requestFailures.length}`)
 }
 
 async function collectInPageMetrics(duration) {
-  return window.__profileRightsCollect(duration)
+  return window.__profileRouteCollect(duration)
 }
 
 async function main() {
@@ -217,7 +289,7 @@ async function main() {
     })
 
     await page.evaluate(() => {
-      window.__profileRightsCollect = async (duration) => {
+      window.__profileRouteCollect = async (duration) => {
         const longTasks = []
         let longTaskSupported = false
         let longTaskObserver = null
@@ -355,11 +427,17 @@ async function main() {
         nodes: afterMetrics.Nodes || 0
       }
     }
+    report.thresholds = evaluateThresholds(report)
+    report.status = report.thresholds.passed ? "ok" : "threshold-failed"
 
     if (options.json) {
       console.log(JSON.stringify(report, null, 2))
     } else {
       printHuman(report)
+    }
+
+    if (!report.thresholds.passed) {
+      process.exitCode = 1
     }
   } finally {
     await browser.close()
@@ -367,6 +445,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(`perf:rights failed: ${error.message}`)
+  console.error(`perf:route failed: ${error.message}`)
   process.exit(1)
 })

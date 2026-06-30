@@ -14,7 +14,7 @@ const TurtlePage = lazy(() => import('./TurtlePage').then(m => ({ default: m.Tur
 
 export const App = () => {
   const [loc] = useLocation()
-  const isHome = loc === "/"
+  const isAbout = loc === "/" || loc === "/about" || loc === "/about/"
   const isDemos = loc === "/demos" || loc === "/demos/"
 
   if (isDemos) {
@@ -23,7 +23,7 @@ export const App = () => {
 
   return (
     <>
-      {isHome ? (
+      {isAbout ? (
         <Suspense fallback={<div className="loading">Loading...</div>}>
           <TurtlePage />
         </Suspense>
@@ -31,12 +31,12 @@ export const App = () => {
         <MainCanvas />
       )}
       <div className="nav">
-        <Link to="/" className={loc === "/" ? "active" : ""}>about</Link>
+        <Link to="/" className={isAbout ? "active" : ""}>about</Link>
         <Link to="/rights" className={loc === "/rights" ? "active" : ""}>rights</Link>
         <Link to="/activism" className={loc === "/activism" ? "active" : ""}>activism</Link>
         <Link to="/charity" className={loc === "/charity" ? "active" : ""}>charity</Link>
       </div>
-      {isHome ? <AboutOverlay /> : <CauseInfo />}
+      {isAbout ? <AboutOverlay /> : <CauseInfo />}
     </>
   )
 }
