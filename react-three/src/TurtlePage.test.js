@@ -5,9 +5,12 @@ import { createRoot } from "react-dom/client"
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 let canvasProps
-let autoInvalidateProps
-const mockInvalidate = jest.fn()
-let mockIntervalCallback
+let hasAutoInvalidate
+let mockUseGLTF
+let mockUseAnimations
+let mockUseFrame
+let consoleErrorSpy
+const originalConsoleError = console.error
 
 jest.mock("@react-three/fiber", () => ({
   Canvas: ({ children, ...props }) => {
@@ -15,49 +18,43 @@ jest.mock("@react-three/fiber", () => ({
     const autoInvalidate = React.Children.toArray(children).find((child) => child.type?.name === "AutoInvalidate")
 
     canvasProps = props
-    autoInvalidateProps = autoInvalidate?.props
+    hasAutoInvalidate = Boolean(autoInvalidate)
 
-    return <div data-testid="turtle-canvas" />
+    const renderedChildren = React.Children.toArray(children).filter((child) => typeof child.type === "function")
+
+    return <div data-testid="turtle-canvas">{renderedChildren}</div>
   },
-  useFrame: jest.fn(),
-  useThree: jest.fn()
+  useFrame: (...args) => mockUseFrame(...args)
 }))
 
 jest.mock("@react-three/drei", () => ({
-  Float: ({ children }) => <div>{children}</div>,
-  useGLTF: jest.fn(() => ({
-    nodes: { Cube: { geometry: {} } },
-    scene: { rotation: { z: 0 } },
-    animations: []
-  })),
-  useAnimations: jest.fn(() => ({
-    actions: {},
-    mixer: { timeScale: 1 }
-  })),
-  Instance: () => <div />,
-  Instances: ({ children }) => <div>{children}</div>,
+  useGLTF: (...args) => mockUseGLTF(...args),
+  useAnimations: (...args) => mockUseAnimations(...args),
   CameraControls: () => <div />
 }))
 
 describe("TurtleCanvas", () => {
-  const { useThree } = require("@react-three/fiber")
-  const { TurtleCanvas, AutoInvalidate } = require("./TurtlePage")
+  const { TurtleCanvas } = require("./TurtlePage")
   let container
   let root
 
   beforeEach(() => {
     canvasProps = undefined
-    autoInvalidateProps = undefined
-    mockInvalidate.mockClear()
-    useThree.mockReturnValue({ invalidate: mockInvalidate })
-    mockIntervalCallback = undefined
-    global.setInterval = jest.fn((callback) => {
-      mockIntervalCallback = callback
-      return 1
+    hasAutoInvalidate = undefined
+    mockUseGLTF = jest.fn(() => ({
+      scene: { position: { y: 0 }, rotation: { y: 0, z: 0 } },
+      animations: []
+    }))
+    mockUseAnimations = jest.fn(() => ({
+      actions: {},
+      mixer: { timeScale: 1 }
+    }))
+    mockUseFrame = jest.fn()
+    consoleErrorSpy = jest.spyOn(console, "error").mockImplementation((message, ...args) => {
+      const text = [message, ...args].join(" ")
+      if (text.includes("primitive") && text.includes("unrecognized")) return
+      originalConsoleError(message, ...args)
     })
-    global.clearInterval = jest.fn()
-    window.setInterval = global.setInterval
-    window.clearInterval = global.clearInterval
     container = document.createElement("div")
     document.body.appendChild(container)
     root = createRoot(container)
@@ -65,28 +62,17 @@ describe("TurtleCanvas", () => {
 
   afterEach(() => {
     act(() => root.unmount())
+    consoleErrorSpy.mockRestore()
     container.remove()
   })
 
-  it("keeps the optimized demand frame loop", () => {
+  it("uses a static WebGL render with CSS-driven turtle motion", () => {
     act(() => root.render(<TurtleCanvas />))
 
     expect(canvasProps.frameloop).toBe("demand")
-  })
-
-  it("uses a smooth automatic render cadence on the page", () => {
-    act(() => root.render(<TurtleCanvas />))
-
-    expect(autoInvalidateProps.fps).toBeGreaterThanOrEqual(12)
-  })
-
-  it("invalidates frames automatically so the turtle animates without a click", async () => {
-    await act(async () => root.render(<AutoInvalidate fps={8} />))
-
-    expect(global.setInterval).toHaveBeenCalledWith(expect.any(Function), 125)
-    expect(mockInvalidate).toHaveBeenCalledTimes(1)
-
-    act(() => mockIntervalCallback())
-    expect(mockInvalidate).toHaveBeenCalledTimes(2)
+    expect(canvasProps.className).toBe("turtle-canvas")
+    expect(hasAutoInvalidate).toBe(false)
+    expect(mockUseFrame).not.toHaveBeenCalled()
+    expect(mockUseAnimations).not.toHaveBeenCalled()
   })
 })

@@ -29,6 +29,35 @@ body {
   opacity: 0.5;
 }
 
+.turtle-stage {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  width: clamp(280px, 32vw, 460px);
+  height: clamp(140px, 17vw, 240px);
+  transform: translate3d(-50%, -50%, 0);
+  transform-origin: 50% 50%;
+  animation: turtleSwim 4.5s ease-in-out infinite;
+  pointer-events: auto;
+  will-change: transform;
+}
+
+.turtle-canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@keyframes turtleSwim {
+  0%,
+  100% {
+    transform: translate3d(-50%, -50%, 0) rotate(-2deg);
+  }
+  50% {
+    transform: translate3d(calc(-50% + 14px), calc(-50% - 10px), 0) rotate(2deg);
+  }
+}
+
 a {
   pointer-events: all;
   cursor: pointer;
@@ -285,6 +314,12 @@ a:visited {
   .nav a {
     margin-left: 10px;
     font-size: 0.85rem;
+  }
+
+  .turtle-stage {
+    top: 38%;
+    width: clamp(240px, 72vw, 360px);
+    height: clamp(120px, 36vw, 190px);
   }
 
   .cause-info {
