@@ -38,6 +38,10 @@ jest.mock("./TurtlePage", () => ({
   TurtleCanvas: () => <div data-testid="turtle-canvas" />
 }))
 
+jest.mock("./WebGPUClothPage", () => ({
+  WebGPUClothPage: () => <div data-testid="webgpu-cloth-page" />
+}), { virtual: true })
+
 jest.mock("wouter", () => ({
   Link: ({ children, to, className }) => (
     <a className={className} href={to}>{children}</a>
@@ -197,5 +201,32 @@ describe("App demos route", () => {
     expect(container.textContent).toContain("CSS3D Mixed")
     expect(container.textContent).toContain("WebGPU Compute Cloth")
     expect(container.querySelector(".nav")?.textContent || "").not.toContain("demos")
+  })
+})
+
+describe("App hidden cloth route", () => {
+  let container
+  let root
+
+  beforeEach(() => {
+    window.history.pushState({}, "", "/cloth")
+    container = document.createElement("div")
+    document.body.appendChild(container)
+    root = createRoot(container)
+  })
+
+  afterEach(() => {
+    act(() => root.unmount())
+    container.remove()
+    window.history.pushState({}, "", "/")
+  })
+
+  it("renders the isolated WebGPU cloth page without adding it to the visible nav", async () => {
+    await act(async () => root.render(<App />))
+
+    expect(container.querySelector('[data-testid="webgpu-cloth-page"]')).not.toBeNull()
+    expect(container.querySelector('[data-testid="canvas"]')).toBeNull()
+    expect(container.textContent).toContain("WebGPU Cloth")
+    expect(container.querySelector(".nav")?.textContent || "").not.toContain("cloth")
   })
 })

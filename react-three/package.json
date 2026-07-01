@@ -22,6 +22,7 @@
     "react-scripts": "5.0.1",
     "suspend-react": "0.1.3",
     "three": "0.154.0",
+    "three-webgpu": "npm:three@0.167.1",
     "wouter": "3.3.1"
   },
   "devDependencies": {
@@ -33,6 +34,7 @@
     "build": "react-scripts build",
     "perf:route": "node scripts/profile-rights.mjs",
     "perf:rights": "node scripts/profile-rights.mjs --url http://127.0.0.1:3101/rights",
+    "verify:cloth-route": "npm test -- --watchAll=false --silent && npm run build && node scripts/check-cloth-route.mjs",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
