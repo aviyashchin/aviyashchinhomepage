@@ -11,6 +11,7 @@ const inter = import("@pmndrs/assets/fonts/inter_regular.woff")
 
 // Lazy load turtle page (2MB model)
 const TurtlePage = lazy(() => import('./TurtlePage').then(m => ({ default: m.TurtleCanvas })))
+const WebGPUClothPage = lazy(() => import('./WebGPUClothPage').then(m => ({ default: m.WebGPUClothPage })))
 
 const mainSceneQuality = {
   mobile: {
@@ -33,6 +34,7 @@ export const App = () => {
   const [loc] = useLocation()
   const isAbout = loc === "/" || loc === "/about" || loc === "/about/"
   const isDemos = loc === "/demos" || loc === "/demos/"
+  const isCloth = loc === "/cloth" || loc === "/cloth/"
 
   if (isDemos) {
     return <DemosPage />
@@ -43,6 +45,10 @@ export const App = () => {
       {isAbout ? (
         <Suspense fallback={<div className="loading">Loading...</div>}>
           <TurtlePage />
+        </Suspense>
+      ) : isCloth ? (
+        <Suspense fallback={<div className="loading">Loading...</div>}>
+          <WebGPUClothPage />
         </Suspense>
       ) : (
         <MainCanvas />
@@ -169,12 +175,18 @@ const causeData = {
     title: "Enduring Hearts",
     description: "I serve on the board of Enduring Hearts, a pediatric heart transplant charity.",
     url: "https://www.enduringhearts.org/about-us/"
+  },
+  "/cloth": {
+    title: "WebGPU Cloth",
+    description: "Transparent compute-cloth study adapted from the Three.js WebGPU cloth demo.",
+    url: "https://threejs.org/examples/webgpu_compute_cloth.html"
   }
 }
 
 function CauseInfo() {
   const [loc] = useLocation()
-  const cause = causeData[loc] || causeData["/rights"]
+  const normalizedLoc = loc.endsWith("/") && loc.length > 1 ? loc.slice(0, -1) : loc
+  const cause = causeData[normalizedLoc] || causeData["/rights"]
   return (
     <div className="cause-info">
       <a href={cause.url} target="_blank" rel="noopener noreferrer">
