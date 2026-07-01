@@ -28,7 +28,7 @@ const TURTLE_MODEL = '/turtle-draco.glb'
 export function TurtleCanvas() {
   return (
     <Canvas
-      dpr={0.75}
+      dpr={0.7}
       flat
       gl={{ antialias: false, powerPreference: "high-performance" }}
       camera={{ position: [30, 0, -3], fov: 35, near: 1, far: 50 }}
