@@ -24,7 +24,7 @@ const mainSceneQuality = {
     dpr: [1, 1.5],
     transmission: { samples: 2, resolution: 256, backsideResolution: 128 },
     contactShadowResolution: 256,
-    composerMultisampling: 2,
+    composerMultisampling: 0,
     bloomLevels: 4
   }
 }
@@ -74,7 +74,7 @@ function MainCanvas() {
       eventSource={document.getElementById("root")}
       eventPrefix="client"
       shadows
-      frameloop="demand"
+      gl={{ powerPreference: "high-performance" }}
       dpr={quality.dpr}
       camera={{ position: [0, 0, 20], fov: 50 }}
     >
