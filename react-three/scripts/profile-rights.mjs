@@ -6,6 +6,7 @@ const DEFAULT_URL = "http://127.0.0.1:3101/"
 const DEFAULT_DURATION_MS = 5000
 const DEFAULT_TIMEOUT_MS = 15000
 const DEFAULT_CHANNEL = "chrome"
+const DEFAULT_WARMUP_MS = 500
 
 function printHelp() {
   console.log(`Usage: npm run perf:route -- [options]
@@ -15,6 +16,7 @@ Profiles a React Three route in Chrome with Playwright.
 Options:
   --url <url>          Page URL to profile. Default: ${DEFAULT_URL}
   --duration <ms>      requestAnimationFrame sample window. Default: ${DEFAULT_DURATION_MS}
+  --warmup <ms>        Delay after canvas readiness before sampling. Default: ${DEFAULT_WARMUP_MS}
   --timeout <ms>       Navigation/canvas timeout. Default: ${DEFAULT_TIMEOUT_MS}
   --channel <name>     Chromium channel, e.g. chrome, chrome-beta, msedge.
                        Use "bundled" to use Playwright's bundled Chromium.
@@ -57,10 +59,15 @@ function parseArgs(argv) {
   }
 
   const duration = Number(readOption(argv, "--duration", DEFAULT_DURATION_MS))
+  const warmup = Number(readOption(argv, "--warmup", DEFAULT_WARMUP_MS))
   const timeout = Number(readOption(argv, "--timeout", DEFAULT_TIMEOUT_MS))
 
   if (!Number.isFinite(duration) || duration <= 0) {
     throw new Error("--duration must be a positive number of milliseconds")
+  }
+
+  if (!Number.isFinite(warmup) || warmup < 0) {
+    throw new Error("--warmup must be a non-negative number of milliseconds")
   }
 
   if (!Number.isFinite(timeout) || timeout <= 0) {
@@ -71,6 +78,7 @@ function parseArgs(argv) {
     help: false,
     url: readOption(argv, "--url", DEFAULT_URL),
     duration,
+    warmup,
     timeout,
     channel: readOption(argv, "--channel", DEFAULT_CHANNEL),
     headed: argv.includes("--headed"),
@@ -145,6 +153,8 @@ URL: ${report.url}
 Status: ${report.status}
 Readiness: domcontentloaded + canvas selector; networkidle intentionally skipped
 Sample window: ${report.options.duration}ms
+Warmup before sampling: ${report.options.warmup}ms
+Settle frames after warmup: 2
 
 Navigation:
   domContentLoaded: ${formatMs(report.timings.domContentLoadedMs)}
@@ -290,6 +300,7 @@ async function main() {
 
     await page.evaluate(() => {
       window.__profileRouteCollect = async (duration) => {
+        const sampleStart = performance.now()
         const longTasks = []
         let longTaskSupported = false
         let longTaskObserver = null
@@ -297,6 +308,7 @@ async function main() {
         try {
           longTaskObserver = new PerformanceObserver((list) => {
             for (const entry of list.getEntries()) {
+              if (entry.startTime < sampleStart) continue
               longTasks.push({
                 name: entry.name,
                 startTime: entry.startTime,
@@ -311,8 +323,8 @@ async function main() {
         }
 
         const frames = []
-        const start = performance.now()
-        let previous = start
+        const start = sampleStart
+        let previous = sampleStart
 
         await new Promise((resolve) => {
           function tick(now) {
@@ -400,7 +412,10 @@ async function main() {
       }
     })
 
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(options.warmup)
+    await page.evaluate(() => new Promise((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve))
+    }))
     const inPage = await page.evaluate(collectInPageMetrics, options.duration)
     const afterMetrics = toMetricMap(await client.send("Performance.getMetrics"))
 
