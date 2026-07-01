@@ -73,7 +73,7 @@ describe("TurtleCanvas", () => {
   it("caps the internal drawing buffer below full DPR", () => {
     act(() => root.render(<TurtleCanvas />))
 
-    expect(canvasProps.dpr).toBe(0.5)
+    expect(canvasProps.dpr).toBe(0.7)
   })
 
   it("uses flat canvas color output to avoid extra tone-mapping work", () => {
