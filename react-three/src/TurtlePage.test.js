@@ -5,17 +5,23 @@ import { createRoot } from "react-dom/client"
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 let canvasProps
-let autoInvalidateProps
-const mockInvalidate = jest.fn()
-let mockIntervalCallback
+let heartbeatProps
+
+jest.mock("three", () => ({
+  DoubleSide: 2,
+  FrontSide: 0,
+  MeshPhongMaterial: jest.fn(function MeshPhongMaterial(props) {
+    Object.assign(this, props)
+  })
+}))
 
 jest.mock("@react-three/fiber", () => ({
   Canvas: ({ children, ...props }) => {
     const React = require("react")
-    const autoInvalidate = React.Children.toArray(children).find((child) => child.type?.name === "AutoInvalidate")
+    const heartbeat = React.Children.toArray(children).find((child) => child.type?.name?.includes("Invalidate"))
 
     canvasProps = props
-    autoInvalidateProps = autoInvalidate?.props
+    heartbeatProps = heartbeat?.props
 
     return <div data-testid="turtle-canvas" />
   },
@@ -40,24 +46,14 @@ jest.mock("@react-three/drei", () => ({
 }))
 
 describe("TurtleCanvas", () => {
-  const { useThree } = require("@react-three/fiber")
-  const { TurtleCanvas, AutoInvalidate } = require("./TurtlePage")
+  const { TurtleCanvas, optimizeTurtleMaterials } = require("./TurtlePage")
+  const { DoubleSide, FrontSide, MeshPhongMaterial } = require("three")
   let container
   let root
 
   beforeEach(() => {
     canvasProps = undefined
-    autoInvalidateProps = undefined
-    mockInvalidate.mockClear()
-    useThree.mockReturnValue({ invalidate: mockInvalidate })
-    mockIntervalCallback = undefined
-    global.setInterval = jest.fn((callback) => {
-      mockIntervalCallback = callback
-      return 1
-    })
-    global.clearInterval = jest.fn()
-    window.setInterval = global.setInterval
-    window.clearInterval = global.clearInterval
+    heartbeatProps = undefined
     container = document.createElement("div")
     document.body.appendChild(container)
     root = createRoot(container)
@@ -68,25 +64,56 @@ describe("TurtleCanvas", () => {
     container.remove()
   })
 
-  it("keeps the optimized demand frame loop", () => {
+  it("uses the continuous frame loop for smooth idle animation", () => {
     act(() => root.render(<TurtleCanvas />))
 
-    expect(canvasProps.frameloop).toBe("demand")
+    expect(canvasProps.frameloop).toBeUndefined()
   })
 
-  it("uses a smooth automatic render cadence on the page", () => {
+  it("caps the internal drawing buffer below full DPR", () => {
     act(() => root.render(<TurtleCanvas />))
 
-    expect(autoInvalidateProps.fps).toBeGreaterThanOrEqual(12)
+    expect(canvasProps.dpr).toBe(0.5)
   })
 
-  it("invalidates frames automatically so the turtle animates without a click", async () => {
-    await act(async () => root.render(<AutoInvalidate fps={8} />))
+  it("uses flat canvas color output to avoid extra tone-mapping work", () => {
+    act(() => root.render(<TurtleCanvas />))
 
-    expect(global.setInterval).toHaveBeenCalledWith(expect.any(Function), 125)
-    expect(mockInvalidate).toHaveBeenCalledTimes(1)
+    expect(canvasProps.flat).toBe(true)
+  })
 
-    act(() => mockIntervalCallback())
-    expect(mockInvalidate).toHaveBeenCalledTimes(2)
+  it("does not cap idle animation with a manual invalidation heartbeat", () => {
+    act(() => root.render(<TurtleCanvas />))
+
+    expect(heartbeatProps).toBeUndefined()
+  })
+
+  it("replaces turtle PBR materials with front-sided textured Phong materials", () => {
+    const map = { isTexture: true }
+    const alphaMap = { isTexture: true }
+    const material = {
+      color: "green",
+      map,
+      alphaMap,
+      transparent: true,
+      opacity: 0.8,
+      side: DoubleSide,
+      skinning: true
+    }
+    const object = { material }
+    const scene = { traverse: (visit) => visit(object) }
+
+    optimizeTurtleMaterials(scene)
+
+    expect(MeshPhongMaterial).toHaveBeenCalledWith({
+      color: "green",
+      map,
+      alphaMap,
+      transparent: true,
+      opacity: 0.8,
+      side: FrontSide,
+      skinning: true
+    })
+    expect(object.material).toBeInstanceOf(MeshPhongMaterial)
   })
 })

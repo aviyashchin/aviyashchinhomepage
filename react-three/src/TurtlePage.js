@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
-import { Canvas, useFrame, useThree } from "@react-three/fiber"
+import { Canvas, useFrame } from "@react-three/fiber"
 import { Float } from "@react-three/drei"
 import { useGLTF, useAnimations, Instance, Instances, CameraControls } from "@react-three/drei"
+import { FrontSide, MeshPhongMaterial } from "three"
 
 // Bubble configuration for turtle aquarium
 const spheres = [
@@ -27,13 +28,12 @@ const TURTLE_MODEL = '/turtle-draco.glb'
 export function TurtleCanvas() {
   return (
     <Canvas
-      dpr={[1, 1]}
-      frameloop="demand"
+      dpr={0.5}
+      flat
       gl={{ antialias: false, powerPreference: "high-performance" }}
       camera={{ position: [30, 0, -3], fov: 35, near: 1, far: 50 }}
     >
       <color attach="background" args={['#e0e0e0']} />
-      <AutoInvalidate fps={12} />
       <ambientLight intensity={0.45} />
       <directionalLight position={[-5, 10, -5]} intensity={1.5} />
       <Aquarium position={[0, 0.25, 0]}>
@@ -51,21 +51,6 @@ export function TurtleCanvas() {
       <CameraControls truckSpeed={0} dollySpeed={0} minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
     </Canvas>
   )
-}
-
-export function AutoInvalidate({ fps = 8 }) {
-  const three = useThree()
-  const invalidate = typeof three === 'function' ? three : three?.invalidate
-
-  useEffect(() => {
-    if (typeof invalidate !== 'function') return undefined
-
-    invalidate()
-    const intervalId = setInterval(invalidate, 1000 / fps)
-    return () => clearInterval(intervalId)
-  }, [fps, invalidate])
-
-  return null
 }
 
 // Aquarium glass container
@@ -102,9 +87,36 @@ function Turtle(props) {
   const { scene, animations } = useGLTF(TURTLE_MODEL)
   const { actions, mixer } = useAnimations(animations, scene)
   useEffect(() => {
+    optimizeTurtleMaterials(scene)
+  }, [scene])
+  useEffect(() => {
     mixer.timeScale = 0.5
     actions['Swim Cycle']?.play()
   }, [actions, mixer])
   useFrame((state) => (scene.rotation.z = Math.sin(state.clock.elapsedTime / 4) / 4))
   return <primitive object={scene} {...props} />
+}
+
+export function optimizeTurtleMaterials(scene) {
+  scene.traverse((object) => {
+    const materials = Array.isArray(object.material) ? object.material : object.material ? [object.material] : []
+    materials.forEach((material, index) => {
+      const optimized = createTurtleMaterial(material)
+
+      if (Array.isArray(object.material)) object.material[index] = optimized
+      else object.material = optimized
+    })
+  })
+}
+
+export function createTurtleMaterial(source) {
+  return new MeshPhongMaterial({
+    color: source.color || 'white',
+    map: source.map || null,
+    alphaMap: source.alphaMap || null,
+    transparent: source.transparent,
+    opacity: source.opacity,
+    side: FrontSide,
+    skinning: source.skinning
+  })
 }
