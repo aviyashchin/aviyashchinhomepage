@@ -5,13 +5,15 @@ import { App } from "./App"
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
+const mockSerializeProps = ({ children, ...props }) => JSON.stringify(props)
+
 jest.mock("@pmndrs/assets/fonts/inter_regular.woff", () => ({
   __esModule: true,
   default: "mock-font"
 }))
 
 jest.mock("@react-three/fiber", () => ({
-  Canvas: ({ children }) => <div data-testid="canvas">{children}</div>,
+  Canvas: ({ children, ...props }) => <div data-testid="canvas" data-props={mockSerializeProps(props)}>{children}</div>,
   useFrame: jest.fn()
 }))
 
@@ -20,16 +22,16 @@ jest.mock("@react-three/drei", () => ({
   Lightformer: () => <div />,
   Text: ({ children }) => <span>{children}</span>,
   Html: ({ children }) => <span>{children}</span>,
-  ContactShadows: () => <div />,
+  ContactShadows: (props) => <div data-testid="contact-shadows" data-props={mockSerializeProps(props)} />,
   Environment: ({ children }) => <div>{children}</div>,
-  MeshTransmissionMaterial: () => <div />
+  MeshTransmissionMaterial: (props) => <div data-testid="mesh-transmission-material" data-props={mockSerializeProps(props)} />
 }))
 
 jest.mock("@react-three/postprocessing", () => ({
-  Bloom: () => <div />,
-  EffectComposer: ({ children }) => <div>{children}</div>,
-  N8AO: () => <div />,
-  TiltShift2: () => <div />
+  Bloom: (props) => <div data-testid="bloom" data-props={mockSerializeProps(props)} />,
+  EffectComposer: ({ children, ...props }) => <div data-testid="effect-composer" data-props={mockSerializeProps(props)}>{children}</div>,
+  N8AO: (props) => <div data-testid="n8ao" data-props={mockSerializeProps(props)} />,
+  TiltShift2: (props) => <div data-testid="tilt-shift" data-props={mockSerializeProps(props)} />
 }))
 
 jest.mock("./TurtlePage", () => ({
@@ -53,6 +55,8 @@ jest.mock("suspend-react", () => ({
 jest.mock("maath", () => ({
   easing: { damp3: jest.fn() }
 }))
+
+const readProps = (container, testId) => JSON.parse(container.querySelector(`[data-testid="${testId}"]`)?.getAttribute("data-props") || "{}")
 
 describe("App about route", () => {
   let container
@@ -78,6 +82,67 @@ describe("App about route", () => {
     expect(container.textContent).toContain("Subconscious AI")
     expect(container.textContent).not.toContain("Non-Human Rights")
     expect(container.querySelector(".nav a.active")?.textContent).toBe("about")
+  })
+})
+
+describe("App rights route performance budget", () => {
+  let container
+  let root
+
+  beforeEach(() => {
+    window.history.pushState({}, "", "/rights")
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      writable: true,
+      value: 1440
+    })
+    container = document.createElement("div")
+    document.body.appendChild(container)
+    root = createRoot(container)
+  })
+
+  afterEach(() => {
+    act(() => root.unmount())
+    container.remove()
+    window.history.pushState({}, "", "/")
+  })
+
+  it("keeps the glass scene while capping idle render cost", async () => {
+    await act(async () => root.render(<App />))
+
+    expect(readProps(container, "canvas")).toEqual(expect.objectContaining({
+      dpr: [1, 1.5],
+      frameloop: "demand"
+    }))
+
+    const materialProps = readProps(container, "mesh-transmission-material")
+    expect(materialProps).toEqual(expect.objectContaining({
+      backside: true,
+      backsideThickness: 5,
+      thickness: 2,
+      samples: 2,
+      resolution: 256,
+      backsideResolution: 128
+    }))
+
+    expect(readProps(container, "contact-shadows")).toEqual(expect.objectContaining({
+      scale: 100,
+      blur: 1,
+      far: 100,
+      opacity: 0.85,
+      resolution: 256
+    }))
+
+    expect(readProps(container, "effect-composer")).toEqual(expect.objectContaining({
+      disableNormalPass: true,
+      multisampling: 2
+    }))
+    expect(readProps(container, "n8ao").intensity).toBe(2)
+    expect(readProps(container, "bloom")).toEqual(expect.objectContaining({
+      intensity: 2,
+      levels: 4
+    }))
+    expect(readProps(container, "tilt-shift").blur).toBe(0.2)
   })
 })
 
