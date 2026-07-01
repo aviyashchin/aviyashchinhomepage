@@ -85,12 +85,11 @@ describe("App about route", () => {
   })
 })
 
-describe("App rights route performance budget", () => {
+describe("App cause route render loops", () => {
   let container
   let root
 
   beforeEach(() => {
-    window.history.pushState({}, "", "/rights")
     Object.defineProperty(window, "innerWidth", {
       configurable: true,
       writable: true,
@@ -107,13 +106,16 @@ describe("App rights route performance budget", () => {
     window.history.pushState({}, "", "/")
   })
 
-  it("keeps the glass scene while capping idle render cost", async () => {
+  it("keeps /rights on the continuous frame loop without reducing scene quality", async () => {
+    window.history.pushState({}, "", "/rights")
+
     await act(async () => root.render(<App />))
 
     expect(readProps(container, "canvas")).toEqual(expect.objectContaining({
       dpr: [1, 1.5],
-      frameloop: "demand"
+      gl: { powerPreference: "high-performance" }
     }))
+    expect(readProps(container, "canvas").frameloop).toBeUndefined()
 
     const materialProps = readProps(container, "mesh-transmission-material")
     expect(materialProps).toEqual(expect.objectContaining({
@@ -135,7 +137,7 @@ describe("App rights route performance budget", () => {
 
     expect(readProps(container, "effect-composer")).toEqual(expect.objectContaining({
       disableNormalPass: true,
-      multisampling: 2
+      multisampling: 0
     }))
     expect(readProps(container, "n8ao").intensity).toBe(2)
     expect(readProps(container, "bloom")).toEqual(expect.objectContaining({
@@ -143,6 +145,22 @@ describe("App rights route performance budget", () => {
       levels: 4
     }))
     expect(readProps(container, "tilt-shift").blur).toBe(0.2)
+  })
+
+  it("keeps /activism on the continuous frame loop for visible idle motion", async () => {
+    window.history.pushState({}, "", "/activism")
+
+    await act(async () => root.render(<App />))
+
+    expect(readProps(container, "canvas").frameloop).toBeUndefined()
+  })
+
+  it("keeps /charity on the continuous frame loop for visible idle motion", async () => {
+    window.history.pushState({}, "", "/charity")
+
+    await act(async () => root.render(<App />))
+
+    expect(readProps(container, "canvas").frameloop).toBeUndefined()
   })
 })
 

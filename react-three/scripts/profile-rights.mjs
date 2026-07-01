@@ -240,7 +240,7 @@ async function main() {
 
   const launchOptions = {
     headless: !options.headed,
-    args: ["--enable-unsafe-webgpu", "--enable-unsafe-swiftshader"]
+    args: ["--enable-unsafe-webgpu", "--ignore-gpu-blocklist", "--use-angle=default"]
   }
 
   if (options.channel !== "bundled") {
